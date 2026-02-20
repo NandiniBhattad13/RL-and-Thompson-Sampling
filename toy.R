@@ -2,7 +2,7 @@ set.seed(123)
 library(MASS)
 
 # ----------------------- Problem setup -----------------------
-T <- 1000                 # Horizon
+T <- 500                 # Horizon
 K <- 2                    # Number of arms
 d_context <- 4            # Context dimension
 d <- K * d_context        # Parameter dimension (block per arm)
@@ -12,16 +12,16 @@ sigma0 <- 0.01*eta        # Prior std
 
 # ----------------------- Sampler hyperparameters -----------------------
 h_lmc <- 1e-4             # Langevin stepsize
-h_barker <- 0.1           # Barker proposal scale
-K_lmc <- 25               # LMC inner iterations
-K_barker <- 25            # Barker inner iterations
+h_barker <- 0.01           # Barker proposal scale
+K_lmc <- 1               # LMC inner iterations
+K_barker <- 1            # Barker inner iterations
 lambda_fg <- 0.5*eta      # Feel-good regularization strength
-lambda_my <- 5            # Moreau envelope smoothing width
-b_cap <- 10               # Optimism reward cap
+lambda_my <- 10            # Moreau envelope smoothing width
+b_cap <- 1                # Optimism reward cap
 s_param <- 5.0            # Sigmoid sharpness (smooth FGTS)
 
 # ----------------------- Ground truth model -----------------------
-theta_star <- rnorm(d)
+theta_star <- rnorm(d) #c(rnorm(d/2), rep(5, d/2))
 theta_star_mat <- matrix(theta_star, d_context, K)
 
 # Shared contexts/noise so all algorithms see identical environment
@@ -113,6 +113,7 @@ for (t in 1:T) {
     
     # add gradient only if predicted reward below optimism cap
     idx_fg <- which(all_rew[cbind(1:t, best_a)] < b_cap)
+    print(length(idx_fg))
     if(length(idx_fg)>0){
       for(i in idx_fg) g_fg <- g_fg + get_phi_matrix(X_curr_h[i,], best_a[i], K, d_context)
     }
